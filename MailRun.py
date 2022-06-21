@@ -40,7 +40,7 @@ masterdf["Sale Flag"] = np.where(
 )
 #low record count so we for loop through all of our sales and begin parsing the raw data
 for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
-    #items variable is always in the below format
+    #items variable is always in the below format since the mail content is automated
     items = re.match(
         r"Vendor: (?P<Vendor>.*?) has sold (?P<Item>.*?) to (?P<Buyer>.*?) for (?P<Amount>.*?) credits\.",
         row["Content"],
