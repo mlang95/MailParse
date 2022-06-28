@@ -18,7 +18,7 @@ In addition, I wrote a quick csv to parse weapon types from weapon names: E11 Ca
 
 root = r"C:\SWG Restoration III\profiles\goopus\Restoration\mail_Banker/" #Goopus = Account Name, Banker = Character name
 masterColumns = ["Mail ID", "Author", "Subject", "TimeStamp", "Content"]
-salesColumns = masterColumns + ["Vendor", "Item", "Buyer", "Amount","Quality","Weapon","Type","Vendor Type"]
+salesColumns = masterColumns + ["Vendor", "Item", "Buyer", "Amount","Quality","Weapon","Type","Vendor Type","Range Type"]
 masterdf = pd.DataFrame([], columns=masterColumns)
 data = []
 salesdata = []
@@ -56,17 +56,23 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             weaponData["Quality"] = "Enhanced"
+            
         elif "Output" in items["Item"]:
             type = items["Item"].split("Max Output ")[-1]
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             weaponData["Quality"] = "Enhanced"
-
+            
         else:
             #Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,weaponData["Weapon"]),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
+            
         weaponData["Vendor Type"] = "Weapon"
+        try:
+            weaponData["Range Type"] = weaponTypes.loc[weaponTypes["Type"]==weaponData["Type"]]["RangeType"].to_list()[0]
+        except:
+            weaponData["Range Type"] = ""
     else:
         # Vendor Type is an important way to slice between our core sales and our various other data
         weaponData = {"Quality": "","Weapon":"","Type": "","Vendor Type":"Other"}
