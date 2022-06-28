@@ -52,7 +52,6 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
         #Some Items have more specific naming conventions, and all of them are Enhanced Quality
         if "SAC " in items["Item"]:
             type = items["Item"].split("SAC ")[-1].replace("Enhanced ","")
-            print(type,items["Buyer"])
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             weaponData["Quality"] = "Enhanced"
@@ -69,10 +68,12 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             
         weaponData["Vendor Type"] = "Weapon"
-        try:
+        if weaponData["Vendor Type"] == "Weapon":
             weaponData["Range Type"] = weaponTypes.loc[weaponTypes["Type"]==weaponData["Type"]]["RangeType"].to_list()[0]
-        except:
+        else:
             weaponData["Range Type"] = ""
+            #Not a weapon, no range type
+            
     else:
         # Vendor Type is an important way to slice between our core sales and our various other data
         weaponData = {"Quality": "","Weapon":"","Type": "","Vendor Type":"Other"}
