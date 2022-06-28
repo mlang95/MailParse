@@ -22,8 +22,7 @@ salesColumns = masterColumns + ["Vendor", "Item", "Buyer", "Amount","Quality","W
 masterdf = pd.DataFrame([], columns=masterColumns)
 data = []
 salesdata = []
-
-# opening each individual piece of mail and grabbing initial raw data
+#opening each individual piece of mail and grabbing initial raw data
 for file in os.listdir(root):
     with open(root + file, "r") as mail:
         mails = mail.readlines()
@@ -35,35 +34,40 @@ for file in os.listdir(root):
         data.append([mailid, author, subject, timestamp, content])
 masterdf = pd.DataFrame(data, columns=masterColumns)
 masterdf["TimeStamp"] = pd.to_datetime(masterdf["TimeStamp"], unit="s")
-
-# Sales only occur when the subject is "Vendor Sale Complete", and since that's the only thing we are currently interested in, we slice by it
+#Sales only occur when the subject is "Vendor Sale Complete", and since that's the only thing we are currently interested in, we slice by it
 masterdf["Sale Flag"] = np.where(
     np.isin(masterdf["Subject"], "Vendor Sale Complete"), True, False
 )
-
-# low record count so we for loop through all of our sales and begin parsing the raw data
+#low record count so we for loop through all of our sales and begin parsing the raw data
 for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
-    # items variable is always in the below format since the mail content is automated
+    #items variable is always in the below format
     items = re.match(
         r"Vendor: (?P<Vendor>.*?) has sold (?P<Item>.*?) to (?P<Buyer>.*?) for (?P<Amount>.*?) credits\.",
         row["Content"],
     ).groupdict()
-    
-    # "MM | " is a tag for every item I sell, so we can use it to grab the quality and weapon type
+    #"MM | " is a tag for every item I sell, so we can use it to grab the quality and weapon type
     if "MM |" in items["Item"]:
-        weaponData = re.match(r"MM \| (?P<Quality>.*?) (?P<Weapon>.*?$)",items["Item"]).groupdict()
-        
-        #Some Items have more specific naming conventions, and all of them are Enhanced Quality
-        if "SAC" in items["Item"]:
-            weaponData["Quality"] = "Enhanced"
         weaponTypes = pd.read_excel(r"C:\Users\Matt\Desktop\Weapons.xlsx")
-        
-        # Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
-        funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,weaponData["Weapon"]),weaponTypes["Type"].values,"")
-        weaponData["Type"] = "".join(x for x in funkyArray if x != "")
+        weaponData = re.match(r"MM \| (?P<Quality>.*?) (?P<Weapon>.*?$)",items["Item"]).groupdict()
+        #Some Items have more specific naming conventions, and all of them are Enhanced Quality
+        if "SAC " in items["Item"]:
+            type = items["Item"].split("SAC ")[-1].replace("Enhanced ","")
+            print(type,items["Buyer"])
+            funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
+            weaponData["Type"] = "".join(x for x in funkyArray if x != "")
+            weaponData["Quality"] = "Enhanced"
+        elif "Output" in items["Item"]:
+            type = items["Item"].split("Max Output ")[-1]
+            funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
+            weaponData["Type"] = "".join(x for x in funkyArray if x != "")
+            weaponData["Quality"] = "Enhanced"
+
+        else:
+            #Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
+            funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,weaponData["Weapon"]),weaponTypes["Type"].values,"")
+            weaponData["Type"] = "".join(x for x in funkyArray if x != "")
         weaponData["Vendor Type"] = "Weapon"
     else:
-        
         # Vendor Type is an important way to slice between our core sales and our various other data
         weaponData = {"Quality": "","Weapon":"","Type": "","Vendor Type":"Other"}
     salesdata.append(
