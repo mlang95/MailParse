@@ -54,13 +54,6 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
         #Some Items have more specific naming conventions, and all of them are Enhanced Quality
         if "SAC " in items["Item"]:
             type = items["Item"].split("SAC ")[-1].replace("Enhanced ","")
-            '''
-            "87 SAC Enhanced Cum Blaster SAC Maniac".split('SAC ')[-1]
-            ['87','Enhanced Cum Blaster','Maniac'][-1]
-            'Maniac'
-
-            
-            '''
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             weaponData["Quality"] = "Enhanced"
