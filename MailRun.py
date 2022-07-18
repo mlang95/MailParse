@@ -63,13 +63,18 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
             weaponData["Quality"] = "Enhanced"
             
         else:
+            if "Speed" in items["Item"]:
+                print("".join(x for x in funkyArray if x != ""))
             #Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,weaponData["Weapon"]),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             
         weaponData["Vendor Type"] = "Weapon"
         if weaponData["Vendor Type"] == "Weapon":
-            weaponData["Range Type"] = weaponTypes.loc[weaponTypes["Type"]==weaponData["Type"]]["RangeType"].to_list()[0]
+            try:
+                weaponData["Range Type"] = weaponTypes.loc[weaponTypes["Type"]==weaponData["Type"]]["RangeType"].to_list()[0]
+            except:
+                weaponData["Range Type"] = ""
         else:
             weaponData["Range Type"] = ""
             #Not a weapon, no range type
