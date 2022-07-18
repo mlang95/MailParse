@@ -47,28 +47,28 @@ for index, row in masterdf[masterdf["Sale Flag"]].iterrows():
     ).groupdict()
     #"MM | " is a tag for every item I sell, so we can use it to grab the quality and weapon type
     if "MM |" in items["Item"]:
+        
         weaponTypes = pd.read_excel(r"C:\Users\Matt\Desktop\Weapons.xlsx")
         weaponData = re.match(r"MM \| (?P<Quality>.*?) (?P<Weapon>.*?$)",items["Item"]).groupdict()
+        weaponData["Weapon"] = weaponData["Weapon"].replace("SAC ","").replace("Max Output ", "").replace("Speed ", "")
         #Some Items have more specific naming conventions, and all of them are Enhanced Quality
         if "SAC " in items["Item"]:
             type = items["Item"].split("SAC ")[-1].replace("Enhanced ","")
-            funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
-            weaponData["Type"] = "".join(x for x in funkyArray if x != "")
-            weaponData["Quality"] = "Enhanced"
+            '''
+            "87 SAC Enhanced Cum Blaster SAC Maniac".split('SAC ')[-1]
+            ['87','Enhanced Cum Blaster','Maniac'][-1]
+            'Maniac'
+
             
-        elif "Output" in items["Item"]:
-            type = items["Item"].split("Max Output ")[-1]
+            '''
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,type),weaponTypes["Type"].values,"")
             weaponData["Type"] = "".join(x for x in funkyArray if x != "")
             weaponData["Quality"] = "Enhanced"
             
         else:
-            if "Speed" in items["Item"]:
-                print("".join(x for x in funkyArray if x != ""))
-            #Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
+        #Couldn't find an elegant solution, so wrote a funky np.where to check if the weapon type exists inside the record and then join all the non-empty info (one record)
             funkyArray = np.where(np.isin(weaponTypes["Weapon"].values,weaponData["Weapon"]),weaponTypes["Type"].values,"")
-            weaponData["Type"] = "".join(x for x in funkyArray if x != "")
-            
+            weaponData["Type"] = "".join(x for x in funkyArray if x != "")   
         weaponData["Vendor Type"] = "Weapon"
         if weaponData["Vendor Type"] == "Weapon":
             try:
